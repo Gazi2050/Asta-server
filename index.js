@@ -1,13 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
 const port = process.env.PORT || 5000;
 
 //middleware
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://asta-server-three.vercel.app']
+    origin: ['http://localhost:5173', 'https://asta-185de.web.app']
 }));
 app.use(express.json());
 
@@ -37,6 +37,7 @@ async function run() {
             const result = await userCollection.find().toArray();
             res.send(result);
         })
+
 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -75,6 +76,17 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/events/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+
+            const options = {
+                projection: { _id: 1, eventName: 1, eventFee: 1, img: 1, description: 1, eventType: 1 },
+            };
+            const result = await eventCollection.findOne(query, options);
+            res.send(result);
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -85,18 +97,16 @@ async function run() {
 }
 run().catch(console.dir);
 
-
-
-app.get('/', (req, res) => {
-    res.send(`<h1 style="text-align:center">Asta Server Is Running...</h1>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/users'>users</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>`)
-})
 // app.get('/', (req, res) => {
 //     res.send(`<h1 style="text-align:center">Asta Server Is Running...</h1>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/users'>users</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>`)
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/users'>users</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>`)
 // })
+app.get('/', (req, res) => {
+    res.send(`<h1 style="text-align:center">Asta Server Is Running...</h1>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/users'>users</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>`)
+})
 
 app.listen(port, () => {
     console.log(`Asta Is Running On Port: ${port}`)
