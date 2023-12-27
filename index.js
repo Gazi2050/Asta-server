@@ -31,7 +31,7 @@ async function run() {
         //Collections
         const userCollection = client.db('asta').collection('users');
         const eventCollection = client.db('asta').collection('events');
-
+        const bookingsCollection = client.db('asta').collection('bookings');
         // user related api
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray();
@@ -87,6 +87,26 @@ async function run() {
             res.send(result);
         })
 
+        //bookings related api
+
+        app.get('/bookings', async (req, res) => {
+            console.log(req.query.email);
+            let query = {};
+            if (req.query?.email) {
+                query = { email: req.query.email }
+            }
+            const result = await bookingsCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            console.log(booking);
+            const result = await bookingsCollection.insertOne(booking);
+            res.send(result);
+        });
+
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -98,14 +118,17 @@ async function run() {
 run().catch(console.dir);
 
 // app.get('/', (req, res) => {
-//     res.send(`<h1 style="text-align:center">Asta Server Is Running...</h1>
+//     res.send(`<h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/users'>users</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>`)
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/bookings'>bookings</a></h2>`)
 // })
+
 app.get('/', (req, res) => {
     res.send(`<h1 style="text-align:center">Asta Server Is Running...</h1>
     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/users'>users</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>`)
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/bookings'>bookings</a></h2>`)
 })
 
 app.listen(port, () => {
