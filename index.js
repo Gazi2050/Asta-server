@@ -99,6 +99,17 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/bookings/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+
+            const options = {
+                projection: { _id: 1, eventName: 1, eventFee: 1, img: 1, description: 1, eventType: 1, img: 1, serviceData: 1, email: 1, },
+            };
+            const result = await bookingsCollection.findOne(query, options);
+            res.send(result);
+        })
+
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
             console.log(booking);
@@ -117,19 +128,19 @@ async function run() {
 }
 run().catch(console.dir);
 
-// app.get('/', (req, res) => {
-//     res.send(`<h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/users'>users</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/bookings'>bookings</a></h2>`)
-// })
-
 app.get('/', (req, res) => {
-    res.send(`<h1 style="text-align:center">Asta Server Is Running...</h1>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/users'>users</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/bookings'>bookings</a></h2>`)
+    res.send(`<h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/users'>users</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/bookings'>bookings</a></h2>`)
 })
+
+// app.get('/', (req, res) => {
+//     res.send(`<h1 style="text-align:center">Asta Server Is Running...</h1>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/users'>users</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/bookings'>bookings</a></h2>`)
+// })
 
 app.listen(port, () => {
     console.log(`Asta Is Running On Port: ${port}`)
