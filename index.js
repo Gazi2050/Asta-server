@@ -140,6 +140,17 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+
+            const options = {
+                projection: { _id: 1, eventId: 1, img: 1, eventName: 1, eventType: 1, email: 1, photographer: 1, hotel: 1, caterer: 1, photographerType: 1, hotelType: 1, catererType: 1, eventFee: 1, photographerFee: 1, catererFee: 1, hotelFee: 1, guests: 1, total: 1, orderDate: 1, orderTime: 1, eventDate: 1 },
+            };
+            const result = await ordersCollection.findOne(query, options);
+            res.send(result);
+        })
+
         app.post('/orders', async (req, res) => {
             const orders = req.body;
             const query = { orderDate: orders.orderDate };
