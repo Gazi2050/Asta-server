@@ -141,6 +141,11 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result)
         })
+        app.get('/allEvents', verifyToken, verifyAdmin, async (req, res) => {
+            const cursor = eventCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
 
         app.get('/events/:id', async (req, res) => {
             const id = req.params.id;
@@ -150,6 +155,20 @@ async function run() {
                 projection: { _id: 1, eventName: 1, eventFee: 1, img: 1, description: 1, eventType: 1 },
             };
             const result = await eventCollection.findOne(query, options);
+            res.send(result);
+        })
+
+        app.post('/events', async (req, res) => {
+            const event = req.body;
+            console.log(event);
+            const result = await eventCollection.insertOne(event);
+            res.send(result);
+        });
+
+        app.delete('/allEvents/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await eventCollection.deleteOne(query);
             res.send(result);
         })
 
@@ -165,7 +184,13 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/bookings/:id', async (req, res) => {
+        app.get('/allBookings', verifyToken, verifyAdmin, async (req, res) => {
+            const cursor = bookingsCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
+
+        app.get('/bookings/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
 
@@ -190,6 +215,13 @@ async function run() {
             res.send(result);
         })
 
+        app.delete('/allBookings/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await bookingsCollection.deleteOne(query);
+            res.send(result);
+        })
+
         //orders related api
 
         app.get('/orders', verifyToken, async (req, res) => {
@@ -205,7 +237,7 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/orders/:id', async (req, res) => {
+        app.get('/orders/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
 
@@ -248,15 +280,20 @@ app.get('/', (req, res) => {
     res.send(`<h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/users'>users</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allUsers'>allUsers</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allEvents'>allEvents</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allBookings'>allBookings</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/bookings'>bookings</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/orders'>orders</a></h2>`)
 })
 
 // app.get('/', (req, res) => {
-//     res.send(`<h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
+//     res.send(`
+//     <h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/users'>users</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allUsers'>allUsers</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allEvents'>allEvents</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allBookings'>allBookings</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/bookings'>bookings</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/orders'>orders</a></h2>`)
