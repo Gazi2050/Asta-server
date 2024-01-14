@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const app = express();
 const port = process.env.PORT || 5000;
@@ -33,12 +34,71 @@ async function run() {
         const eventCollection = client.db('asta').collection('events');
         const bookingsCollection = client.db('asta').collection('bookings');
         const ordersCollection = client.db('asta').collection('orders');
+
+        // jwt related api
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            res.send({ token });
+        })
+
+        // middlewares 
+        const verifyToken = (req, res, next) => {
+            // console.log('inside verify token', req.headers.authorization);
+            if (!req.headers.authorization) {
+                console.log("No token");
+                return res.status(401).send({ message: 'unauthorized access' });
+            }
+            const token = req.headers.authorization.split(' ')[1];
+            console.log('got the token', token);
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.status(401).send({ message: 'unauthorized access' })
+                }
+                req.decoded = decoded;
+                next();
+            })
+        }
+
+        // use verify admin after verifyToken
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const isAdmin = user?.role === 'admin';
+            if (!isAdmin) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
+        }
+
+
         // user related api
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyToken, async (req, res) => {
+            console.log(req.headers.authorization)
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        })
+        app.get('/allUsers', verifyToken, verifyAdmin, async (req, res) => {
             const result = await userCollection.find().toArray();
             res.send(result);
         })
 
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+
+            // if (email !== req.decoded.email) {
+            //     return res.status(403).send({ message: 'forbidden access' })
+            // }
+
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            let admin = false;
+            if (user) {
+                admin = user?.role === 'admin';
+            }
+            res.send({ admin });
+        })
 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -51,19 +111,24 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/users/admin/:id', async (req, res) => {
+        app.patch('/users/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updatedDoc = {
                 $set: {
                     role: 'admin'
+                },
+                $unset: {
+                    catererType: 1,
+                    hotelType: 1,
+                    photographerType: 1
                 }
             }
             const result = await userCollection.updateOne(filter, updatedDoc);
             res.send(result);
         })
 
-        app.delete('/users/:id', async (req, res) => {
+        app.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await userCollection.deleteOne(query);
@@ -90,7 +155,7 @@ async function run() {
 
         //bookings related api
 
-        app.get('/bookings', async (req, res) => {
+        app.get('/bookings', verifyToken, async (req, res) => {
             console.log(req.query.email);
             let query = {};
             if (req.query?.email) {
@@ -127,7 +192,7 @@ async function run() {
 
         //orders related api
 
-        app.get('/orders', async (req, res) => {
+        app.get('/orders', verifyToken, async (req, res) => {
             console.log(req.query.email);
             let query = {};
             if (req.query?.email) {
@@ -182,14 +247,16 @@ run().catch(console.dir);
 app.get('/', (req, res) => {
     res.send(`<h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/users'>users</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allUsers'>allUsers</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/bookings'>bookings</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/orders'>orders</a></h2>`)
 })
 
 // app.get('/', (req, res) => {
-//     res.send(`<h1 style="text-align:center">Asta Server Is Running...</h1>
+//     res.send(`<h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/users'>users</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allUsers'>allUsers</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/bookings'>bookings</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/orders'>orders</a></h2>`)
