@@ -200,6 +200,16 @@ async function run() {
             const result = await bookingsCollection.findOne(query, options);
             res.send(result);
         })
+        app.get('/allBookings/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+
+            const options = {
+                projection: { _id: 1, eventName: 1, eventFee: 1, img: 1, description: 1, eventType: 1, img: 1, serviceData: 1, email: 1, },
+            };
+            const result = await bookingsCollection.findOne(query, options);
+            res.send(result);
+        })
 
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
@@ -237,6 +247,19 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/allOrders', verifyToken, verifyAdmin, async (req, res) => {
+            const cursor = ordersCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
+
+        app.get('/allOrders/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await ordersCollection.findOne(query);
+            res.send(result);
+        })
+
         app.get('/orders/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
@@ -247,6 +270,7 @@ async function run() {
             const result = await ordersCollection.findOne(query, options);
             res.send(result);
         })
+
 
         app.post('/orders', async (req, res) => {
             const orders = req.body;
@@ -262,6 +286,13 @@ async function run() {
         app.delete('/orders/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
+            const result = await ordersCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        app.delete('/allOrders/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
             const result = await ordersCollection.deleteOne(query);
             res.send(result);
         })
@@ -282,6 +313,7 @@ app.get('/', (req, res) => {
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allUsers'>allUsers</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allEvents'>allEvents</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allBookings'>allBookings</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allOrders'>allOrders</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/bookings'>bookings</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/orders'>orders</a></h2>`)
@@ -294,6 +326,7 @@ app.get('/', (req, res) => {
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allUsers'>allUsers</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allEvents'>allEvents</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allBookings'>allBookings</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allOrders'>allOrders</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/bookings'>bookings</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/orders'>orders</a></h2>`)
