@@ -3,6 +3,7 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -274,7 +275,7 @@ async function run() {
 
         app.post('/orders', async (req, res) => {
             const orders = req.body;
-            const query = { orderDate: orders.orderDate };
+            const query = { orderDate: orders.orderDate, email: orders.email };
             const existingDate = await ordersCollection.findOne(query);
             if (existingDate) {
                 return res.send({ message: 'You cannot order more than 1 in 24 hours', insertedId: null })
@@ -296,6 +297,25 @@ async function run() {
             const result = await ordersCollection.deleteOne(query);
             res.send(result);
         })
+
+        // payment intent
+
+        app.post('/create-payment-intent', async (req, res) => {
+            const { fee } = req.body;
+            const amount = parseInt(fee * 100);
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                fee: fee,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        })
+
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
