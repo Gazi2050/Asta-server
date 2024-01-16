@@ -35,6 +35,8 @@ async function run() {
         const eventCollection = client.db('asta').collection('events');
         const bookingsCollection = client.db('asta').collection('bookings');
         const ordersCollection = client.db('asta').collection('orders');
+        const paymentCollection = client.db("asta").collection("payments");
+
 
         // jwt related api
         app.post('/jwt', async (req, res) => {
@@ -299,13 +301,13 @@ async function run() {
         })
 
         // payment intent
-
         app.post('/create-payment-intent', async (req, res) => {
             const { fee } = req.body;
             const amount = parseInt(fee * 100);
+            console.log(amount, 'amount inside the intent')
 
             const paymentIntent = await stripe.paymentIntents.create({
-                fee: fee,
+                amount: amount,
                 currency: 'usd',
                 payment_method_types: ['card']
             });
@@ -313,9 +315,33 @@ async function run() {
             res.send({
                 clientSecret: paymentIntent.client_secret
             })
+        });
+
+        app.get('/payments/:email', verifyToken, async (req, res) => {
+            const query = { email: req.params.email }
+            if (req.params.email !== req.decoded.email) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            const result = await paymentCollection.find(query).toArray();
+            res.send(result);
         })
 
+        app.post('/payments', async (req, res) => {
+            const payment = req.body;
+            const paymentResult = await paymentCollection.insertOne(payment);
 
+            //  carefully delete each item from the cart
+            console.log('payment info', payment);
+            const query = {
+                _id: {
+                    $in: payment.orderIds.map(id => new ObjectId(id))
+                }
+            };
+
+            const deleteResult = await ordersCollection.deleteMany(query);
+
+            res.send({ paymentResult, deleteResult });
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
