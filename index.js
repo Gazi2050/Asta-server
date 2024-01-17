@@ -150,6 +150,31 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/allEvents/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await eventCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.put('/allEvents/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const event = req.body;
+            console.log(id, event);
+            const filter = { _id: new ObjectId(id) }
+            const option = { upsert: true }
+            const updateEvent = {
+                $set: {
+                    eventName: event.eventName,
+                    eventType: event.eventType,
+                    description: event.description,
+                    eventFee: event.eventFee
+                }
+            }
+            const result = await eventCollection.updateOne(filter, updateEvent, option);
+            res.send(result)
+        })
+
         app.get('/events/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
@@ -326,6 +351,18 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/allPayments', verifyToken, verifyAdmin, async (req, res) => {
+            const cursor = paymentCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
+        app.get('/allPayments/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await paymentCollection.findOne(query);
+            res.send(result);
+        })
+
         app.post('/payments', async (req, res) => {
             const payment = req.body;
             const paymentResult = await paymentCollection.insertOne(payment);
@@ -353,30 +390,32 @@ async function run() {
 }
 run().catch(console.dir);
 
-app.get('/', (req, res) => {
-    res.send(`<h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/users'>users</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allUsers'>allUsers</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allEvents'>allEvents</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allBookings'>allBookings</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allOrders'>allOrders</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/bookings'>bookings</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/orders'>orders</a></h2>`)
-})
-
 // app.get('/', (req, res) => {
-//     res.send(`
-//     <h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/users'>users</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allUsers'>allUsers</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allEvents'>allEvents</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allBookings'>allBookings</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allOrders'>allOrders</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/bookings'>bookings</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/orders'>orders</a></h2>`)
+//     res.send(`<h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/users'>users</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allUsers'>allUsers</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allEvents'>allEvents</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allBookings'>allBookings</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allOrders'>allOrders</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allPayments'>allPayments</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/bookings'>bookings</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/orders'>orders</a></h2>`)
 // })
+
+app.get('/', (req, res) => {
+    res.send(`
+    <h1 style="text-align:center;font-family:Monospace;">Asta Server Is Running...</h1>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/users'>users</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allUsers'>allUsers</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allEvents'>allEvents</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allBookings'>allBookings</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allOrders'>allOrders</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allPayments'>allPayments</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/bookings'>bookings</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/orders'>orders</a></h2>`)
+})
 
 app.listen(port, () => {
     console.log(`Asta Is Running On Port: ${port}`)
