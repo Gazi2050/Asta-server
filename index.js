@@ -36,6 +36,7 @@ async function run() {
         const bookingsCollection = client.db('asta').collection('bookings');
         const ordersCollection = client.db('asta').collection('orders');
         const paymentCollection = client.db("asta").collection("payments");
+        const inboxCollection = client.db("asta").collection("inbox");
 
 
         // jwt related api
@@ -325,7 +326,7 @@ async function run() {
             res.send(result);
         })
 
-        // payment intent
+        // payment api
         app.post('/create-payment-intent', async (req, res) => {
             const { fee } = req.body;
             const amount = parseInt(fee * 100);
@@ -387,6 +388,33 @@ async function run() {
             res.send(result);
         })
 
+        //inbox api
+        app.get('/inbox', verifyToken, verifyAdmin, async (req, res) => {
+            const result = await inboxCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get('/inbox/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await inboxCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.post('/inbox', async (req, res) => {
+            const inbox = req.body;
+            console.log(inbox);
+            const result = await inboxCollection.insertOne(inbox);
+            res.send(result);
+        });
+
+        app.delete('/inbox/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await inboxCollection.deleteOne(query);
+            res.send(result);
+        })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
@@ -408,7 +436,8 @@ run().catch(console.dir);
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/allPayments'>allPayments</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/bookings'>bookings</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/orders'>orders</a></h2>`)
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/orders'>orders</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/inbox'>inbox</a></h2>`)
 // })
 
 app.get('/', (req, res) => {
@@ -422,7 +451,8 @@ app.get('/', (req, res) => {
     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/allPayments'>allPayments</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/bookings'>bookings</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/orders'>orders</a></h2>`)
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/orders'>orders</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/inbox'>inbox</a></h2>`)
 })
 
 app.listen(port, () => {
