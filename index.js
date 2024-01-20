@@ -37,6 +37,7 @@ async function run() {
         const ordersCollection = client.db('asta').collection('orders');
         const paymentCollection = client.db("asta").collection("payments");
         const inboxCollection = client.db("asta").collection("inbox");
+        const subscriberCollection = client.db("asta").collection("subscriber");
 
 
         // jwt related api
