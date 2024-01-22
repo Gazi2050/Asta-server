@@ -416,6 +416,52 @@ async function run() {
             res.send(result);
         })
 
+        // subscribe api
+        app.get('/subscribe', async (req, res) => {
+            const result = await subscriberCollection.find().toArray();
+            res.send(result);
+        })
+
+        // app.get('/subscribe', async (req, res) => {
+
+        //     const totalUsers = await userCollection.countDocuments();
+        //     const totalSubscribers = await subscriberCollection.countDocuments();
+
+        //     const subscribers = await subscriberCollection.find().toArray();
+        //     const subscriberEmails = subscribers.map(subscriber => subscriber.subscriber.toLowerCase());
+
+        //     const usersNotInSubscribers = await userCollection.countDocuments({
+        //         email: { $nin: subscriberEmails }
+        //     });
+
+        //     const subscribersNotInUsers = await subscriberCollection.countDocuments({
+        //         subscriber: { $nin: userEmails.map(user => user.toLowerCase()) }
+        //     });
+
+        //     const pieChartData = {
+        //         totalUsers: totalUsers,
+        //         totalSubscribers: totalSubscribers,
+        //         totalNonSubscriberUsers: usersNotInSubscribers,
+        //         totalNonUserSubscribers: subscribersNotInUsers,
+        //     };
+
+        //     res.send(pieChartData);
+
+        // });
+
+
+
+
+        app.post('/subscribe', async (req, res) => {
+            const subscribe = req.body;
+            console.log(subscribe);
+            const result = await subscriberCollection.insertOne(subscribe);
+            res.send(result);
+        });
+
+
+
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
@@ -438,7 +484,8 @@ run().catch(console.dir);
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/events'>events</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/bookings'>bookings</a></h2>
 //     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/orders'>orders</a></h2>
-//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/inbox'>inbox</a></h2>`)
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/inbox'>inbox</a></h2>
+//     <h2 style="text-align:center;font-family:Monospace;"><a href='http://localhost:5000/subscribe'>subscriber</a></h2>`)
 // })
 
 app.get('/', (req, res) => {
@@ -453,7 +500,8 @@ app.get('/', (req, res) => {
     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/events'>events</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/bookings'>bookings</a></h2>
     <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/orders'>orders</a></h2>
-    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/inbox'>inbox</a></h2>`)
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/inbox'>inbox</a></h2>
+    <h2 style="text-align:center;font-family:Monospace;"><a href='https://asta-server-three.vercel.app/subscribe'>subscriber</a></h2>`)
 })
 
 app.listen(port, () => {
